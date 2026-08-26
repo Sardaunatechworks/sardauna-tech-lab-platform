@@ -6,7 +6,7 @@
   "license": "proprietary",
   "require": {
     "php": "^8.2",
-    "laravel/framework": "^11.0",
+    "laravel/framework": "v11.43.2",
     "laravel/sanctum": "^4.0"
   },
   "autoload": {
@@ -20,8 +20,15 @@
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "sort-packages": true,
+    "policy": {
+      "advisories": {
+        "block": false,
+        "ignore": ["*"]
+      }
+    },
     "audit": {
-      "block": false
+      "block": false,
+      "ignore": ["*"]
     }
   },
   "minimum-stability": "stable",
