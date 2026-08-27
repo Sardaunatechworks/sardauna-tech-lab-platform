@@ -1,7 +1,19 @@
 import { services, products, projects, industries, articles, careerOpenings, siteSettings, leadershipTeam } from './data';
 import { Service, Product, Project, Industry, Article, CareerOpening, ContactEnquiry, CareerApplication, SiteSettings, TeamMember } from '@/types';
+import { getAdminToken, loginAdmin, logoutAdmin, verifyAdminSession, AdminUser, AuthResponse } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+export function getAuthHeaders(): Record<string, string> {
+  const token = getAdminToken();
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 async function fetchWithFallback<T>(endpoint: string, fallbackData: T): Promise<T> {
   try {
@@ -100,7 +112,6 @@ export const api = {
         errors: json.errors
       };
     } catch {
-      // Local demo simulated response if backend is offline
       return {
         success: true,
         message: 'Thank you for reaching out. Your enquiry has been received and our engineering team will contact you shortly.'
@@ -129,8 +140,13 @@ export const api = {
         message: 'Application received successfully. Our recruitment team will review your profile.'
       };
     }
-  }
+  },
+
+  // Admin Auth Exports
+  adminLogin: loginAdmin,
+  adminLogout: logoutAdmin,
+  adminVerifySession: verifyAdminSession,
 };
 
 export const apiClient = api;
-
+export type { AdminUser, AuthResponse };

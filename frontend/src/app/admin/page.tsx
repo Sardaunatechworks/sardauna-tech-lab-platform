@@ -38,13 +38,15 @@ import { useCMS } from '@/lib/useCMS';
 import { Service, Product, Project, Article, CareerOpening } from '@/types';
 import { TeamMemberCMS, PartnerCMS } from '@/lib/cms-store';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import { logoutAdmin, verifyAdminSession, getAdminUser, AdminUser } from '@/lib/auth';
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
     'overview' | 'sections' | 'services' | 'products' | 'projects' | 'team' | 'partners' | 'articles' | 'careers' | 'enquiries' | 'settings'
   >('overview');
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AdminUser | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const router = useRouter();
 
@@ -98,19 +100,42 @@ export default function AdminDashboardPage() {
   ]);
 
   useEffect(() => {
-    const token = localStorage.getItem('stl_admin_token');
-    const storedUser = localStorage.getItem('stl_admin_user');
-    if (!token) {
-      router.push('/admin/login');
-    } else if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    let isMounted = true;
+
+    async function checkAuthentication() {
+      try {
+        const { isValid, user: verifiedUser } = await verifyAdminSession();
+        if (!isMounted) return;
+
+        if (!isValid) {
+          router.replace('/admin/login?reason=session_expired');
+          return;
+        }
+
+        if (verifiedUser) {
+          setUser(verifiedUser);
+        } else {
+          const cached = getAdminUser();
+          if (cached) setUser(cached);
+        }
+        setIsAuthChecking(false);
+      } catch {
+        if (isMounted) {
+          router.replace('/admin/login?reason=session_expired');
+        }
+      }
     }
+
+    checkAuthentication();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('stl_admin_token');
-    localStorage.removeItem('stl_admin_user');
-    router.push('/admin/login');
+  const handleLogout = async () => {
+    await logoutAdmin();
+    router.replace('/admin/login');
   };
 
   const updateEnquiryStatus = (id: number, status: string) => {
@@ -137,6 +162,32 @@ export default function AdminDashboardPage() {
     { id: 'enquiries', label: 'Enquiries CRM', icon: <Inbox className="w-4 h-4" />, count: enquiries.filter(e => e.status === 'new').length },
     { id: 'settings', label: 'Site Settings & SEO', icon: <Settings className="w-4 h-4" /> },
   ];
+
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-[#06101E] flex flex-col items-center justify-center text-white px-4">
+        <div className="flex flex-col items-center space-y-4 max-w-sm text-center">
+          <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-white/10 border border-[#F5A623]/40 p-2 flex items-center justify-center shadow-2xl backdrop-blur-md">
+            <img
+              src="/sardauna-logo.png"
+              alt="Sardauna Tech Lab"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-[#F5A623]">
+            <ShieldCheck className="w-4 h-4 animate-pulse" />
+            <span>Validating Security Session</span>
+          </div>
+          <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="w-1/2 h-full bg-[#F5A623] rounded-full animate-[pulse_1s_ease-in-out_infinite]" />
+          </div>
+          <p className="text-xs text-[#94A3B8]">
+            Verifying cryptographic credentials with governance authority...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col font-sans">
@@ -176,11 +227,13 @@ export default function AdminDashboardPage() {
           </Link>
           <div className="text-right hidden sm:block">
             <div className="text-xs font-bold">{user?.name || 'Administrator'}</div>
-            <div className="text-[10px] text-[#F5A623] uppercase font-mono">Super Admin</div>
+            <div className="text-[10px] text-[#F5A623] uppercase font-mono">
+              {user?.role ? user.role.replace('_', ' ') : 'Super Admin'}
+            </div>
           </div>
           <button
             onClick={handleLogout}
-            className="p-1.5 text-[#94A3B8] hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+            className="p-1.5 text-[#94A3B8] hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
             title="Sign Out"
           >
             <LogOut className="w-4 h-4" />
