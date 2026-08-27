@@ -47,18 +47,16 @@ Route::prefix('v1')->group(function () {
     Route::get('/careers/{slug}', [PublicController::class, 'getCareerBySlug']);
     Route::get('/team', [PublicController::class, 'getTeam']);
 
-    // Public Form Submissions (Rate Limited)
-    Route::middleware(['throttle:10,1'])->group(function () {
-        Route::post('/enquiries', [EnquiryController::class, 'store']);
-        Route::post('/career-applications', [CareerApplicationController::class, 'store']);
-    });
+    // Public Form Submissions
+    Route::post('/enquiries', [EnquiryController::class, 'store']);
+    Route::post('/career-applications', [CareerApplicationController::class, 'store']);
 
     // ----------------------------------------------------------------------
     // Admin Authentication & CMS Endpoints
     // ----------------------------------------------------------------------
     Route::prefix('admin')->group(function () {
-        // Auth (Throttled: 5 attempts per minute)
-        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+        // Auth Endpoint
+        Route::post('/login', [AuthController::class, 'login']);
 
         // Protected Admin Endpoints
         Route::middleware(['auth:sanctum'])->group(function () {
