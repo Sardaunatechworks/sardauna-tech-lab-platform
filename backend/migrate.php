@@ -6,7 +6,9 @@ require __DIR__.'/vendor/autoload.php';
 
 $app = require_once __DIR__.'/bootstrap/app.php';
 
-$app->boot();
+// Bootstrap the Laravel Framework Environment
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
 
 echo "====================================================\n";
 echo " SARDAUNA TECH LAB - DATABASE MIGRATION & SEEDER\n";
