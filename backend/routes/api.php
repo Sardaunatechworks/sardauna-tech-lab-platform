@@ -25,17 +25,25 @@ Route::prefix('v1')->group(function () {
     // ----------------------------------------------------------------------
     // Public Corporate Endpoints
     // ----------------------------------------------------------------------
+    Route::get('/health', function () {
+        return response()->json(['status' => 'online', 'service' => 'Sardauna Tech Lab API', 'version' => '1.0.0', 'timestamp' => now()]);
+    });
     Route::get('/settings', [PublicController::class, 'getSettings']);
     Route::get('/services', [PublicController::class, 'getServices']);
+    Route::get('/service', [PublicController::class, 'getServices']);
     Route::get('/services/{slug}', [PublicController::class, 'getServiceBySlug']);
     Route::get('/products', [PublicController::class, 'getProducts']);
+    Route::get('/product', [PublicController::class, 'getProducts']);
     Route::get('/products/{slug}', [PublicController::class, 'getProductBySlug']);
     Route::get('/projects', [PublicController::class, 'getProjects']);
+    Route::get('/project', [PublicController::class, 'getProjects']);
     Route::get('/projects/{slug}', [PublicController::class, 'getProjectBySlug']);
     Route::get('/industries', [PublicController::class, 'getIndustries']);
     Route::get('/articles', [PublicController::class, 'getArticles']);
+    Route::get('/article', [PublicController::class, 'getArticles']);
     Route::get('/articles/{slug}', [PublicController::class, 'getArticleBySlug']);
     Route::get('/careers', [PublicController::class, 'getCareers']);
+    Route::get('/career', [PublicController::class, 'getCareers']);
     Route::get('/careers/{slug}', [PublicController::class, 'getCareerBySlug']);
     Route::get('/team', [PublicController::class, 'getTeam']);
 
